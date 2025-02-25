@@ -1,7 +1,7 @@
 from fastapi import Request, HTTPException, Security
 from fastapi.security import HTTPBearer
 import jwt
-from secret import JWT_SECRET
+from config import JWT_SECRET
 
 security = HTTPBearer()
 
