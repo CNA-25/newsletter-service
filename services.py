@@ -9,7 +9,7 @@ def get_subscribers():
     return response.json()
 
 def get_featured_products():
-    response = requests.get(f"{PRODUCTS_API_URL}/api/products")
+    response = requests.get(f"{PRODUCTS_API_URL}/products")
     if response.status_code != 200:
         raise HTTPException(status_code=500, detail="Failed to fetch products")
 
