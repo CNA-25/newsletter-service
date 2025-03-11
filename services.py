@@ -2,33 +2,21 @@ import requests
 from config import USERS_API_URL, PRODUCTS_API_URL, EMAIL_API_URL, EMAIL_API_KEY
 from fastapi import HTTPException
 
-#def get_subscribers():
- #   response = requests.get(f"{USERS_API_URL}/users")  #Hämtar alla användare
-
- #   if response.status_code != 200:
-  #      raise Exception("Failed to fetch users")
-
-   # users = response.json().get("users", [])  #Extract user list
-
-    #Filtrerar users som har "subscribed": 1 i "data"
-    #subscribed_users = [
-     #   user for user in users if user.get("data", {}).get("subscribed") == 1
-    #]
-
-    #return subscribed_users
-
 def get_subscribers():
-    response = requests.get(f"{USERS_API_URL}/users")  # Fetch all users
+    response = requests.get(f"{USERS_API_URL}/users")  #Hämtar alla användare
 
     if response.status_code != 200:
-        print("Failed to fetch users:", response.status_code)
-        print("Response:", response.text)
-        return []
+        raise Exception("Failed to fetch users")
 
-    users = response.json().get("users", [])  # Extract user list
-    print(f"Successfully fetched {len(users)} users")
+    users = response.json().get("users", [])  #Extract user list
 
-    return users
+    #Filtrerar users som har "subscribed": 1 i "data"
+    subscribed_users = [
+        user for user in users if user.get("data", {}).get("subscribed") == 1
+    ]
+
+    return subscribed_users
+
 
 # Run the function if the script is executed directly
 if __name__ == "__main__":

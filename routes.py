@@ -17,7 +17,7 @@ def test_fetch_products():
         return {"message": "Products fetched successfully", "products": products}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch products: {str(e)}")
-
+    
 
 @router.get("/newsletter/test-users") #Test att hämta användare från API
 def test_fetch_users():
@@ -28,7 +28,7 @@ def test_fetch_users():
         subscribers = get_subscribers()
         return {"message": "Subscribers fetched successfully", "subscribers": subscribers}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch subscribers: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch users: {str(e)}")
 
 @router.get("/newsletter/preview", response_class=HTMLResponse)
 def preview_newsletter():
