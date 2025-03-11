@@ -40,14 +40,14 @@ def generate_email_html(subject: str, message: str, products: list) -> str:
             <td><img src="{p['image']}" alt="{p['name']}" width="100"></td>
             <td>
                 <strong>{p['name']}</strong><br>
-                {p['category']} - {p['price']} SEK<br>
+                {p['category']} - {p['price']}€<br>
                 <small>{p['description']}</small>
             </td>
         </tr>
         """ for p in products
     ])
 
-    #Bygg hela e-postmeddelandet som HTML
+    #Bygger hela e-postmeddelandet som HTML
     email_html = f"""
     <html>
     <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
