@@ -26,7 +26,7 @@ def get_subscribers():
         return []
 
     users = response.json().get("users", [])  # Extract user list
-    print(f"✅ Successfully fetched {len(users)} users")
+    print(f"Successfully fetched {len(users)} users")
 
     return users
 
