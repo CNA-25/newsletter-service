@@ -17,12 +17,6 @@ def get_subscribers():
 
     return subscribed_users
 
-
-# Run the function if the script is executed directly
-if __name__ == "__main__":
-    users = get_subscribers()
-    print("Fetched Users:", users)
-
 def get_featured_products():
     response = requests.get(f"{PRODUCTS_API_URL}/products")
     if response.status_code != 200:
@@ -36,82 +30,71 @@ def get_featured_products():
     return featured_products[:5]  #Anger antalet produkter i newsletter
 
 def generate_email_html(subject: str, message: str, products: list) -> str:
+    """
+    Genererar HTML-innehållet för nyhetsbrevet.
+    """
+    #Skapa HTML-kod för varje produkt i listan
     product_html = "".join([
         f"""
         <tr>
             <td><img src="{p['image']}" alt="{p['name']}" width="100"></td>
             <td>
                 <strong>{p['name']}</strong><br>
-                {p['category']} - {p['price']}€<br>
+                {p['category']} - {p['price']} SEK<br>
                 <small>{p['description']}</small>
             </td>
         </tr>
         """ for p in products
     ])
 
+    #Bygg hela e-postmeddelandet som HTML
     email_html = f"""
     <html>
-    <body>
-        <h2>{subject}</h2>
-        <p>{message}</p>
-        <table>{product_html}</table>
+    <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
+        <div style="max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px #ccc;">
+            <h2 style="color: #333;">{subject}</h2>
+            <p style="font-size: 16px; color: #555;">{message}</p>
+
+            <h3 style="color: #444;">Featured Craft Beers</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                {product_html}
+            </table>
+
+            <p style="font-size: 14px; color: #888; margin-top: 20px;">
+                🍻 Cheers,<br>
+                <strong>Craft Beer Newsletter Team</strong>
+            </p>
+        </div>
     </body>
     </html>
     """
-    return email_html
+    return email_html  # Returnerar HTML-innehållet för vidare användning
 
 def send_email(recipient: str, subject: str, message: str, products: list):
-    #Formaterar produkt sektionen
-    product_html = "".join([
-        f"""
-        <tr>
-            <td><img src="{p['image']}" alt="{p['name']}" width="100"></td>
-            <td>
-                <strong>{p['name']}</strong><br>
-                {p['category']} - {p['price']}€<br>
-                <small>{p['description']}</small>
-            </td>
-        </tr>
-        """
-        for p in products
-    ])
-
-    email_html = f"""
-    <html>
-        <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
-            <div style="max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
-                <h2 style="color: #333;">{subject}</h2>
-                <p style="font-size: 16px; color: #555;">{message}</p>
-                
-                <h3 style="color: #444;">🔥 Featured Craft Beers</h3>
-                <table style="width: 100%; border-collapse: collapse;">
-                    {product_html}
-                </table>
-
-                <p style="font-size: 14px; color: #888; margin-top: 20px;">
-                    🍻 Cheers,<br>
-                    <strong>Craft Beer Newsletter Team</strong>
-                </p>
-            </div>
-        </body>
-    </html>
     """
+    Skickar ett e-postmeddelande via den externa e-posttjänsten.
+    """
+    # Generera e-postens HTML-innehåll
+    email_html = generate_email_html(subject, message, products)
 
+    # Skapa payload för API-anropet
     payload = {
-        "recipient": recipient,
-        "subject": subject,
-        "message": email_html,  #Skickar som HTML
-        "content_type": "text/html"  #säkerställer email API vet att de är HTML
+        "to": recipient,      # Mottagarens e-postadress
+        "subject": subject,   # Ämnesrad för e-postmeddelandet
+        "body": email_html    # Själva e-postinnehållet i HTML-format
     }
 
+    #Skapa headers för API-anropet (inklusive API-nyckel för autentisering)
     headers = {
-    "Authorization": f"Bearer {EMAIL_API_KEY}",  #Använder API KEY
-    "Content-Type": "application/json"
+        "Authorization": f"Bearer {EMAIL_API_KEY}",  # Använder API-nyckel för autentisering
+        "Content-Type": "application/json"  # Säkerställer att datan skickas i JSON-format
     }
 
+    #Skicka POST-förfrågan till e-posttjänstens API
     response = requests.post(f"{EMAIL_API_URL}/send", json=payload, headers=headers)
-    
+
+    #Kontrollera om e-postmeddelandet skickades korrekt
     if response.status_code != 200:
-        raise HTTPException(status_code=500, detail="Failed to send email")
-    
-    return response.json()
+        raise Exception(f"Misslyckades med att skicka e-post: {response.text}")
+
+    return response.json()  #Returnerar API-svaret för debugging/logging
