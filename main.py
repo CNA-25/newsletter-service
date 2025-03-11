@@ -1,10 +1,10 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
-from routes import router
 from config import USERS_API_URL
 
 app = FastAPI()
 
+from routes import router
 # Register the API routes
 app.include_router(router)
 

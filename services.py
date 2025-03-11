@@ -1,12 +1,39 @@
 import requests
-from config import USERS_API_URL, PRODUCTS_API_URL, EMAIL_API_URL
+from config import USERS_API_URL, PRODUCTS_API_URL, EMAIL_API_URL, EMAIL_API_KEY
 from fastapi import HTTPException
 
+#def get_subscribers():
+ #   response = requests.get(f"{USERS_API_URL}/users")  #Hämtar alla användare
+
+ #   if response.status_code != 200:
+  #      raise Exception("Failed to fetch users")
+
+   # users = response.json().get("users", [])  #Extract user list
+
+    #Filtrerar users som har "subscribed": 1 i "data"
+    #subscribed_users = [
+     #   user for user in users if user.get("data", {}).get("subscribed") == 1
+    #]
+
+    #return subscribed_users
+
 def get_subscribers():
-    response = requests.get(f"{USERS_API_URL}/users/subscribers")
+    response = requests.get(f"{USERS_API_URL}/users")  # Fetch all users
+
     if response.status_code != 200:
-        raise HTTPException(status_code=500, detail="Failed to fetch subscribers")
-    return response.json()
+        print("Failed to fetch users:", response.status_code)
+        print("Response:", response.text)
+        return []
+
+    users = response.json().get("users", [])  # Extract user list
+    print(f"✅ Successfully fetched {len(users)} users")
+
+    return users
+
+# Run the function if the script is executed directly
+if __name__ == "__main__":
+    users = get_subscribers()
+    print("Fetched Users:", users)
 
 def get_featured_products():
     response = requests.get(f"{PRODUCTS_API_URL}/products")
@@ -20,6 +47,31 @@ def get_featured_products():
 
     return featured_products[:5]  #Anger antalet produkter i newsletter
 
+def generate_email_html(subject: str, message: str, products: list) -> str:
+    product_html = "".join([
+        f"""
+        <tr>
+            <td><img src="{p['image']}" alt="{p['name']}" width="100"></td>
+            <td>
+                <strong>{p['name']}</strong><br>
+                {p['category']} - {p['price']}€<br>
+                <small>{p['description']}</small>
+            </td>
+        </tr>
+        """ for p in products
+    ])
+
+    email_html = f"""
+    <html>
+    <body>
+        <h2>{subject}</h2>
+        <p>{message}</p>
+        <table>{product_html}</table>
+    </body>
+    </html>
+    """
+    return email_html
+
 def send_email(recipient: str, subject: str, message: str, products: list):
     #Formaterar produkt sektionen
     product_html = "".join([
@@ -28,7 +80,7 @@ def send_email(recipient: str, subject: str, message: str, products: list):
             <td><img src="{p['image']}" alt="{p['name']}" width="100"></td>
             <td>
                 <strong>{p['name']}</strong><br>
-                {p['category']} - {p['price']} SEK<br>
+                {p['category']} - {p['price']}€<br>
                 <small>{p['description']}</small>
             </td>
         </tr>
@@ -64,7 +116,12 @@ def send_email(recipient: str, subject: str, message: str, products: list):
         "content_type": "text/html"  #säkerställer email API vet att de är HTML
     }
 
-    response = requests.post(f"{EMAIL_API_URL}/send", json=payload)
+    headers = {
+    "Authorization": f"Bearer {EMAIL_API_KEY}",  #Använder API KEY
+    "Content-Type": "application/json"
+    }
+
+    response = requests.post(f"{EMAIL_API_URL}/send", json=payload, headers=headers)
     
     if response.status_code != 200:
         raise HTTPException(status_code=500, detail="Failed to send email")

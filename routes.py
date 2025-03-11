@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import NewsletterRequest
-from services import get_subscribers, get_featured_products, send_email
+from services import get_subscribers, get_featured_products, send_email, generate_email_html
 from auth import verify_jwt
 from fastapi.responses import HTMLResponse
+
 
 router = APIRouter()
 
@@ -29,14 +30,17 @@ def test_fetch_users():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch subscribers: {str(e)}")
 
-@router.get("/newsletter/preview", response_class=HTMLResponse) #Preview utav newsletter
+@router.get("/newsletter/preview", response_class=HTMLResponse)
 def preview_newsletter():
-    """
-    Returns a preview of the newsletter in HTML format.
-    """
-    sample_products = get_featured_products()
-    email_preview = send_email("test@example.com", "Newsletter Preview", "This is a preview of the newsletter.", sample_products)
-    return email_preview["message"]
+    sample_products = get_featured_products()  #Hämtar produkter
+    email_preview = generate_email_html(
+    "Newsletter Preview",
+    "This is a preview of the newsletter.",
+    sample_products
+)
+
+    #Iställe för att skicka visar den preview HTML
+    return email_preview 
 
 @router.post("/newsletter/send") #Skickar newsletter
 def send_newsletter(newsletter: NewsletterRequest, user=Depends(verify_jwt)):
